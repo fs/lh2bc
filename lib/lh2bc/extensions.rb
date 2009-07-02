@@ -15,7 +15,7 @@ end
 
 class Basecamp::TodoItem
   def completed?
-    completed
+    respond_to?('completed') ? completed : false
   end
 end
 
@@ -35,7 +35,7 @@ class Lighthouse::Ticket
   end
 
   def to_todo_item_content
-    "##{id}, #{title}"
+    %Q{##{id}, <a href="#{url}">#{title}</a>}
   end
 
   def completed?
