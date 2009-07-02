@@ -1,0 +1,89 @@
+= basecamp-rb
+
+http://github.com/turingstudio/basecamp-rb/
+
+== DESCRIPTION:
+
+A Ruby gem for working with the Basecamp web-services API.
+
+== FEATURES/PROBLEMS:
+
+
+== SYNOPSIS:
+
+The first thing you need to do is establish a connection to Basecamp. This
+requires your Basecamp site address and your login credentials. Example:
+Basecamp::Base.establish_connection!('your.grouphub.com', 'login', 'password')
+
+m = Basecamp::Message.find(8675309)
+m.title # => 'Jenny'
+
+>> Creating a Resource
+  
+  m = Basecamp::Message.new(:project_id => 1037)
+  m.category_id = 7301
+  m.title = 'Message in a bottle'
+  m.body = 'Another lonely day, with no one here but me'
+  m.save # => true
+
+>> Updating a Resource
+
+  m = Basecamp::Message.find(8675309)
+  m.body = 'Changed'
+  m.save # => true
+ 
+>> Deleting a Resource
+
+  Basecamp::Message.delete(1037)
+
+>> Using the non-REST inteface
+
+# The non-REST interface is accessed via instance methods on the Basecamp
+# class. Ensure you've established a connection, then create a new Basecamp
+# instance and call methods on it. Examples:
+
+  basecamp = Basecamp::Base.new
+
+  basecamp.projects.length      # => 5
+  basecamp.person(93832)        # => #<Record(person)..>
+  basecamp.file_categories(123) # => [#<Record(file-category)>,#<Record..>]
+
+# Object attributes are accessible as methods. Example:
+
+  person = basecamp.person(93832)
+  person.first_name # => "Jason"
+
+ 
+== REQUIREMENTS:
+
+ xml-simple >= 1.0.11
+ activeresource >= 2.2.2
+
+== INSTALL:
+
+gem install turingstudio-basecamp-rb
+
+== LICENSE:
+
+(The MIT License)
+
+Copyright (c) 2008 The Turing Studio, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
