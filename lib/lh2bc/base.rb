@@ -6,7 +6,7 @@ class String
     match = self.match(/^\s*\#(\d+)/)
     return nil if match.nil?
     
-    match[1]
+    match[1].to_i
   end
 end
 
@@ -16,15 +16,33 @@ class Basecamp::Resource
   end
 end
 
+class Basecamp::TodoItem
+  def completed?
+    completed
+  end
+end
+
 class Lighthouse::Project
   def inspect
     "#<#{self.class} id: #{id}, name: #{name}>"
+  end
+
+  def to_todo_list_name
+    "##{id}, #{name}"
   end
 end
 
 class Lighthouse::Ticket
   def inspect
-    "#<#{self.class} id: #{id}, title: #{title}>"
+    "#<#{self.class} id: #{id}, title: #{title}, state: #{state}>"
+  end
+
+  def to_todo_item_content
+    "##{id}, #{title}"
+  end
+
+  def completed?
+    state == 'accepted'
   end
 end
 
@@ -32,9 +50,9 @@ end
 module ActiveResource
   class Connection
     private
-      def authorization_header
-        (@user || @password ? { 'Authorization' => 'Basic ' + ["#{@user}:#{ @password}"].pack('m').delete("\r\n") } : {})
-      end
+    def authorization_header
+      (@user || @password ? { 'Authorization' => 'Basic ' + ["#{@user}:#{ @password}"].pack('m').delete("\r\n") } : {})
+    end
   end
 end
 
@@ -68,6 +86,8 @@ module Lh2Bc
     def sync
       load_bc_todo_lists
       load_lh_projects
+
+      sync_todo
     end
 
     private
@@ -81,26 +101,24 @@ module Lh2Bc
       todo_lists = Basecamp::TodoList.all(bc_cred[:project_id])
       logger.debug "* Loaded BC todo lists: #{todo_lists.inspect} for project #{bc_cred[:project_id]}"
 
-      @todo_lists_with_lh_ids = returning({}) do |todo_lists_with_lh_ids|
+      @todo_lists = returning({}) do |todo_lists_with_items|
         todo_lists.each do |todo_list|
+          
           project_id = todo_list.name.to_lh_id
-
           unless project_id.blank?
-            todo_lists_with_lh_ids[project_id] ||= {}
-            todo_lists_with_lh_ids[project_id][:list] = todo_list
-            
+            todo_lists_with_items[project_id] ||= {
+              :list => todo_list
+            }
+
             todo_list.todo_items.each do |todo_item|
               todo_item_id = todo_item.content.to_lh_id
-
-              unless todo_item_id.blank?
-                todo_lists_with_lh_ids[project_id][todo_item_id] = todo_item
-              end
+              todo_lists_with_items[project_id][todo_item_id] = todo_item unless todo_item_id.blank?
             end
           end
         end
       end
 
-      logger.debug "* Converted BC todo list in to LH hash: #{@todo_lists_with_lh_ids.inspect}"
+      logger.debug "* Converted BC todo list in to LH hash: #{@todo_lists.inspect}"
     end
 
     def establish_lh_connection
@@ -113,19 +131,67 @@ module Lh2Bc
       projects = Lighthouse::Project.find(:all)
       logger.debug "* Loaded LH projects: #{projects.inspect}"
 
-      @projects_with_lh_ids = returning({}) do |projects_with_lh_ids|
+      @projects = returning({}) do |projects_with_tickets|
         projects.each do |project|
-          projects_with_lh_ids[project.id] ||= {}
-          projects_with_lh_ids[project.id][:tikects] ||= {}
-          projects_with_lh_ids[project.id][:project] = project
-
-          project.tickets.each do |ticket|
-            projects_with_lh_ids[project.id][:tikects][ticket.id] = ticket
-          end
+          projects_with_tickets[project.id] = {
+            :tickets => project.tickets,
+            :project => project
+          }
         end
       end
 
-      logger.debug "* Converted LH projects to LH hash: #{@projects_with_lh_ids.inspect}"
+      logger.debug "* Converted LH projects to LH hash: #{@projects.inspect}"
+    end
+
+    def sync_todo
+      @projects.keys.each do |project_id|
+        sync_todo_lists_for(@projects[project_id][:project])
+        sync_todo_items_for(@projects[project_id][:project], @projects[project_id][:tickets])
+        sync_todo_items_state_for(@projects[project_id][:project], @projects[project_id][:tickets])
+      end
+    end
+
+    def sync_todo_lists_for(project)
+      unless @todo_lists.include?(project.id)
+        todo_list = Basecamp::TodoList.create(
+          :project_id => bc_cred[:project_id],
+          :name =>  project.to_todo_list_name,
+          :tracked => true
+        )
+        @todo_lists[project.id] = {:list => todo_list}
+
+        logger.debug "* Created new todo list #{todo_list.inspect} for #{project.inspect}"
+      else
+        logger.debug "* Todo list for #{project.inspect} exists"
+      end
+    end
+
+    def sync_todo_items_for(project, tickets)
+      tickets.each do |ticket|
+        unless @todo_lists[project.id].include?(ticket.id)
+          todo_item = Basecamp::TodoItem.create(
+            :todo_list_id => @todo_lists[project.id][:list].id,
+            :content =>  ticket.to_todo_item_content
+          )
+
+          @todo_lists[project.id][ticket.id] = todo_item
+
+          logger.debug "** Created new todo item #{todo_item.inspect} for #{ticket.inspect}"
+        else
+          logger.debug "** Todo item for #{ticket.inspect} exists"
+        end
+      end
+    end
+
+    def sync_todo_items_state_for(project, tickets)
+      tickets.each do |ticket|
+        todo_item = @todo_lists[project.id][ticket.id]
+        unless todo_item.completed? == ticket.completed?
+          todo_item.send(ticket.completed? ? 'complete!' : 'uncomplete!')
+          logger.debug "** Sync completed state #{todo_item.inspect} for #{ticket.inspect}"
+        else
+        end
+      end
     end
   end
 end
