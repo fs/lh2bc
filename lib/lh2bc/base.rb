@@ -7,19 +7,19 @@ module Lh2Bc
     self.bc_cred = {
       :project_id => 3424579,
       :domain => 'flatsoft.grouphub.com',
-      :username => 'id.timurv.ru/me',
-      :password => '16965d28a4dd275bd243'
+      :username => 'test',
+      :password => 'test'
     }
 
     cattr_accessor :lh_cred
     self.lh_cred = {
       :account => 'flatsoft',
-      :token => '2f0c1ffee6af44befaee7904a9cf8b455e9d48c9'
+      :token => 'test'
     }
 
-    def initialize(bc = {}, lh = {})
-      self.bc_cred = bc.update(bc_cred)
-      self.lh_cred = lh.update(lh_cred)
+    def initialize(options = {})
+      self.bc_cred = bc_cred.update(options[:bc]) unless options[:bc].blank?
+      self.lh_cred = lh_cred.update(options[:lh]) unless options[:lh].blank?
 
       establish_bc_connection
       establish_lh_connection
