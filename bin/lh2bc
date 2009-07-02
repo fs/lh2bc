@@ -4,7 +4,7 @@ $:.unshift(File.expand_path(File.dirname(__FILE__) + '/../lib'))
 require 'lh2bc'
 
 Lh2Bc::Base.new(
-  :bc => {:username => 'id.timurv.ru/me', :password => '16965d28a4dd275bd243'},
+  :bc => {:username => 'lh2bc', :password => 'dedwabmy'},
   :lh => {:token => '2f0c1ffee6af44befaee7904a9cf8b455e9d48c9'}
 ).sync
 
