@@ -1,6 +1,12 @@
 set :application, 'lh2bc'
 set :repository, 'git@github.com:fs/ruby-lh2bc.git'
 
+server 'flatsoft-rails.flatsoft.ru', :app
+
+set :user, 'admin'
+set :deploy_to, "/var/www/apps/#{application}"
+set :use_sudo, false
+set :branch, 'master'
 set :scm, :git
 set :deploy_via, :remote_cache
 
@@ -19,6 +25,6 @@ namespace :deploy do
 
   desc "Update the crontab file"
   task :update_crontab, :roles => :db do
-    run "cd #{current_path} && whenever -f config/cron/production.rb --update-crontab #{application}"
+    run "cd #{current_path} && whenever -f config/cron.rb --update-crontab #{application}"
   end
 end
