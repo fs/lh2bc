@@ -1,6 +1,7 @@
+$:.unshift File.dirname(__FILE__)
+
 require 'rubygems'
-require 'activesupport'
 require 'logger'
 
-require 'lh2bc/vendor/basecamp-rb/lib/basecamp'
+require 'lh2bc/vendor'
 require 'lh2bc/base'
