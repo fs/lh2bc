@@ -75,7 +75,7 @@ class Lighthouse::Ticket
   end
 
   def completed?
-    Lh2Bc::Base.lh_cred['resolved_states'].include?(state)
+    Lh2Bc::Base.lh['resolved_states'].include?(state)
   end
 end
 
