@@ -14,7 +14,8 @@ module Lh2Bc
     cattr_accessor :lh_cred
     self.lh_cred = {
       'account' => 'test',
-      'token' => 'test'
+      'token' => 'test',
+      'resolved_states' => %w(accepted resolved invalid hold)
     }
 
     def initialize(options = {})

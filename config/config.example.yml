@@ -7,3 +7,4 @@ basecamp:
 lighthouse:
   account: flatsoft
   token: test
+  resolved_states: [accepted, resolved, invalid, hold]
