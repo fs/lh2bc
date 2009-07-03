@@ -11,7 +11,6 @@ options = {
 
 OptionParser.new do |opts|
   opts.banner = 'Usage: lh2bc [options]'
-
   [
     [['--bc-project-id project', 'Basecamp project id'], 'basecamp/project_id'],
     [['--bc-domain domain', 'Basecamp domain'], 'basecamp/domain'],
@@ -23,7 +22,7 @@ OptionParser.new do |opts|
     [['-v', '--[no-]verbose', 'Run verbosely'], 'verbose'],
   ].each do |option|
     opts.on(*option[0]) do |value|
-      options.path(option[1], value)
+      options.path[option[1]] = value
     end
   end
 
@@ -31,19 +30,16 @@ OptionParser.new do |opts|
     puts "lh2bc version: #{Lh2Bc::VERSION::STRING}"
     exit
   end
-
-  opts.on('-v', '--[no-]verbose', 'Run verbosely') do |verbose|
-    Lh2Bc::Base.logger.level = Logger::DEBUG if verbose
-  end
-
-  opts.on('-c', '--config config.yml', 'With configuration file') do |config|
-    unless File.readable?(config)
-      puts "Configuration file #{config} unreadable"
-      exit
-    end
-
-    options = options.deep_merge(YAML.load(File.read(config)))
-  end
 end.parse!
 
+if options['config']
+  unless File.readable?(options['config'])
+    puts "Configuration file #{options['config']} unreadable"
+    exit
+  end
+
+  options = options.deep_merge(YAML.load(File.read(options['config'])))
+end
+
+Lh2Bc::Base.logger.level = options['verbose'] ? Logger::DEBUG : Logger::INFO
 Lh2Bc::Base.new(options).sync

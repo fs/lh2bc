@@ -1,18 +1,36 @@
+require 'rubygems'
+require 'activesupport'
+
 class Hash
-  def path(path, value = nil)
-    path = path.split('/')
+  class Path
+    def initialize(hash)
+      @hash = hash
+    end
 
-    last_key = path.pop
-    last_item = path.inject(self) { |hash, key| hash[symbolize_key(key)] }
+    def [](path)
+      key, item = last_item(path)
+      item[symbolize_key(key)]
+    end
 
-    return last_item[symbolize_key(last_key)] if value.nil?
-    return last_item[symbolize_key(last_key)] = value
+    def []=(path, value)
+      key, item = last_item(path)
+      item[symbolize_key(key)] = value
+    end
+
+    private
+
+    def last_item(path)
+      path = path.split('/')
+      return path.pop, path.inject(@hash) { |hash, key| hash[symbolize_key(key)] }
+    end
+
+    def symbolize_key(key)
+      key.start_with?(':') ? eval(key) : key
+    end
   end
 
-  private
-
-  def symbolize_key(key)
-    key.start_with?(':') ? eval(key) : key
+  def path
+    Path.new(self)
   end
 end
 
