@@ -1,0 +1,9 @@
+basecamp:
+  project_id: 3424579
+  domain: flatsoft.grouphub.com
+  username: test
+  password: test
+
+lighthouse:
+  account: flatsoft
+  token: test

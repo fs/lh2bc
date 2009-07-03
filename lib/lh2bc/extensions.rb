@@ -1,3 +1,21 @@
+class Hash
+  def path(path, value = nil)
+    path = path.split('/')
+
+    last_key = path.pop
+    last_item = path.inject(self) { |hash, key| hash[symbolize_key(key)] }
+
+    return last_item[symbolize_key(last_key)] if value.nil?
+    return last_item[symbolize_key(last_key)] = value
+  end
+
+  private
+
+  def symbolize_key(key)
+    key.start_with?(':') ? eval(key) : key
+  end
+end
+
 class String
   def to_lh_id
     match = self.match(/^\s*\#(\d+)/)

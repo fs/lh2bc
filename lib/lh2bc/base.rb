@@ -5,21 +5,21 @@ module Lh2Bc
 
     cattr_accessor :bc_cred
     self.bc_cred = {
-      :project_id => 3424579,
-      :domain => 'flatsoft.grouphub.com',
-      :username => 'test',
-      :password => 'test'
+      'project_id' => 3424579,
+      'domain' => 'test.grouphub.com',
+      'username' => 'test',
+      'password' => 'test'
     }
 
     cattr_accessor :lh_cred
     self.lh_cred = {
-      :account => 'flatsoft',
-      :token => 'test'
+      'account' => 'test',
+      'token' => 'test'
     }
 
     def initialize(options = {})
-      self.bc_cred = bc_cred.update(options[:bc]) unless options[:bc].blank?
-      self.lh_cred = lh_cred.update(options[:lh]) unless options[:lh].blank?
+      self.bc_cred = bc_cred.update(options['basecamp']) unless options['basecamp'].blank?
+      self.lh_cred = lh_cred.update(options['lighthouse']) unless options['lighthouse'].blank?
 
       establish_bc_connection
       establish_lh_connection
@@ -35,13 +35,13 @@ module Lh2Bc
     private
 
     def establish_bc_connection
-      Basecamp::Base.establish_connection!(bc_cred[:domain], bc_cred[:username], bc_cred[:password], true)
+      Basecamp::Base.establish_connection!(bc_cred['domain'], bc_cred['username'], bc_cred['password'], true)
       logger.debug "* Initialize BC: #{bc_cred.inspect}"
     end
 
     def load_bc_todo_lists
-      todo_lists = Basecamp::TodoList.all(bc_cred[:project_id])
-      logger.debug "* Loaded BC todo lists: #{todo_lists.inspect} for project #{bc_cred[:project_id]}"
+      todo_lists = Basecamp::TodoList.all(bc_cred['project_id'])
+      logger.debug "* Loaded BC todo lists: #{todo_lists.inspect} for project #{bc_cred['project_id']}"
 
       @todo_lists = returning({}) do |todo_lists_with_items|
         todo_lists.each do |todo_list|
@@ -64,8 +64,8 @@ module Lh2Bc
     end
 
     def establish_lh_connection
-      Lighthouse.account = lh_cred[:account]
-      Lighthouse.token = lh_cred[:token]
+      Lighthouse.account = lh_cred['account']
+      Lighthouse.token = lh_cred['token']
       logger.debug "* Initialize LH: #{lh_cred.inspect}"
     end
 
@@ -96,7 +96,7 @@ module Lh2Bc
     def sync_todo_lists_for(project)
       unless @todo_lists.include?(project.id)
         todo_list = Basecamp::TodoList.create(
-          :project_id => bc_cred[:project_id],
+          :project_id => bc_cred['project_id'],
           :name =>  project.to_todo_list_name,
           :tracked => true
         )
