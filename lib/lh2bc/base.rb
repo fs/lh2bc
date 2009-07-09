@@ -18,9 +18,13 @@ module Lh2Bc
       'resolved_states' => %w(accepted resolved invalid hold)
     }
 
+    cattr_accessor :users
+    self.users = {}
+
     def initialize(options = {})
       self.bc = bc.update(options['basecamp']) unless options['basecamp'].blank?
       self.lh = lh.update(options['lighthouse']) unless options['lighthouse'].blank?
+      self.users = users.update(options['users']) unless options['users'].blank?
 
       establish_bc_connection
       establish_lh_connection
@@ -112,12 +116,7 @@ module Lh2Bc
     def sync_todo_items_for(project, tickets)
       tickets.each do |ticket|
         unless @todo_lists[project.id].include?(ticket.id)
-          todo_item = Basecamp::TodoItem.create(
-            :todo_list_id => @todo_lists[project.id][:list].id,
-            :content =>  ticket.to_todo_item_content
-          )
-
-          @todo_lists[project.id][ticket.id] = todo_item
+          todo_item = create_todo_item_for(project, ticket)
 
           logger.debug "** Created new todo item #{todo_item.inspect} for #{ticket.inspect}"
         else
@@ -135,6 +134,25 @@ module Lh2Bc
         else
         end
       end
+    end
+
+    def create_todo_item_for(project, ticket)
+      options = set_todo_item_responsible_for(ticket, {
+        :todo_list_id => @todo_lists[project.id][:list].id,
+        :content => ticket.to_todo_item_content
+      })
+
+      todo_item = Basecamp::TodoItem.create(options)
+
+      @todo_lists[project.id][ticket.id] = todo_item
+    end
+
+    def set_todo_item_responsible_for(ticket, options = {})
+      options = options.update(
+        :responsible_party => users[ticket.attributes['assigned_user_id'].to_i].to_i
+      ) if ticket.attributes['assigned_user_id'] && users[ticket.attributes['assigned_user_id'].to_i]
+
+      options
     end
   end
 end

@@ -67,7 +67,7 @@ end
 
 class Lighthouse::Ticket
   def inspect
-    "#<#{self.class} id: #{id}, title: #{title}, state: #{state}>"
+    "#<#{self.class} id: #{id}, title: #{title}, state: #{state}, user: #{attributes['assigned_user_id']}>"
   end
 
   def to_todo_item_content

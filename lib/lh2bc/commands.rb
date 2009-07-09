@@ -19,6 +19,7 @@ OptionParser.new do |opts|
     [['--lh-account account', 'Lighthouse account'], 'lighthouse/account'],
     [['--lh-token token', 'Lighthouse token'], 'lighthouse/token'],
     [['-c', '--config config.yml', 'With configuration file'], 'config'],
+    [['-u', '--users users.yml', 'With users configuration file'], 'users'],
     [['-v', '--[no-]verbose', 'Run verbosely'], 'verbose'],
   ].each do |option|
     opts.on(*option[0]) do |value|
@@ -39,6 +40,15 @@ if options['config']
   end
 
   options = options.deep_merge(YAML.load(File.read(options['config'])))
+end
+
+if options['users']
+  unless File.readable?(options['users'])
+    puts "Users configuration file #{options['users']} unreadable"
+    exit
+  end
+
+  options = options.deep_merge(YAML.load(File.read(options['users'])))
 end
 
 Lh2Bc::Base.logger.level = options['verbose'] ? Logger::DEBUG : Logger::INFO
