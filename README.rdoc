@@ -1,0 +1,17 @@
+= Lh2Bc
+
+Sync Lighthouse projects and tickets with Basecamp todo lists and items.
+
+== Install
+
+* sudo gem install lh2bc
+* configure config.yml: access to the Lighthouse & Basecamp
+* configure users.yml: association between Lightouse * Basecamp users
+* add hourly cron job
+   @hourly lh2bc -c /path/to/your/config.yml -c /path/to/your/users.yml >> /path/to/your/lh2bc.log
+* check how it works
+* enjoy Basecamp time traking for Lighthouse
+
+== Copyright
+
+Copyright (c) 2009 Flatsoft, LLC. See LICENSE for details.
