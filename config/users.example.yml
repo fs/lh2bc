@@ -1,0 +1,5 @@
+# assoc between LH and BC user,
+# 123: 321 means that user in the LH with id 123
+# is the same user in the BC with id 321
+users:
+  31129: 2750720
